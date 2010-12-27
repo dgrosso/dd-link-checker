@@ -1,8 +1,8 @@
 {
-    "name": "dd-link-checker", 
+    "name": "Direct-Download Links Checker", 
     "author": "Daniel Grosso", 
     "dependencies": ["api-utils"], 
     "version": "0.2", 
     "id": "jid0-WeVqFVbEYdUhWAmhppnzspBZ8Z0", 
-    "description": "Direct-Download Links Checker"
+    "description": "Checks availability and highlights links of Megaupload and Rapidshare"
 }
