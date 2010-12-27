@@ -1,10 +1,8 @@
 {
     "name": "dd-link-checker", 
     "author": "Daniel Grosso", 
-    "dependencies": [
-        "jetpack-core"
-    ], 
-    "version": "0.1", 
+    "dependencies": ["api-utils"], 
+    "version": "0.2", 
     "id": "jid0-WeVqFVbEYdUhWAmhppnzspBZ8Z0", 
     "description": "Direct-Download Links Checker"
 }
