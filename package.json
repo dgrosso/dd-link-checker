@@ -1,5 +1,5 @@
 {
-    "name": "Direct-Download Links Checker", 
+    "name": "dd-links-checker", 
     "author": "Daniel Grosso", 
     "dependencies": ["api-utils"], 
     "version": "0.2", 
