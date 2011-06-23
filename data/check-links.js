@@ -1,4 +1,3 @@
-
 /** Services **/
 var services = {
 	/** Rapidshare **/
@@ -6,98 +5,45 @@ var services = {
 		{
 			enabled: true,
 			regex: /^http:\/\/rapidshare\.com\/files\/([0-9]+)\/(.*)$/,
-			valid: function(status) { return (status==1 || status > 50); },
-			check: check_rs_links
 		},
 	/** Megaupload **/
 	'mu':
 		{
 			enabled: true,
 			regex: /^http:\/\/.*\.megaupload\.com\/(?:.*\/)?\?d=([A-Z0-9]{8})$/,
-			regex_status: /id([0-9]+)=([0-9])/,
-			regex_status_g: /id([0-9]+)=([0-9])/g,
-			valid: function(status) { return (status==0); },
-			check: check_mu_links
+		},
+	/** Hotfile **/
+	'hf':
+		{
+			enabled: false,
+			regex: /^http:\/\/hotfile\.com\/dl\/(.*)$/,
 		}
 };
+var links = {};
 
-function set_link_status(link,service,status)
+function set_link_status(link,valid)
 {
 	link.style.borderWidth='1px';
 	link.style.borderStyle='solid';
-	if( service.valid(status) )
+	link.style.borderRadius='5px';
+	link.style.padding='1px';
+	if( valid )
 	{
-		link.style.backgroundColor='green';
-		link.style.borderColor='green';
-		link.style.color='white';
+		link.style.backgroundColor='#00ff00';
+		link.style.borderColor='#0e6400';
+		link.style.color='#0e6400';
 	}
 	else
 	{
-		link.style.backgroundColor="red";
-		link.style.borderColor='red';
-		link.style.color="black";
+		link.style.backgroundColor='#ff8080';
+		link.style.borderColor='#8f0d00';
+		link.style.color='#640a00';
 	}
-}
-
-function check_rs_links(links)
-{
-	var data_files = "files=";
-	var data_filenames = "filenames=";
-	for( i in links )
-	{
-		data_files += links[i].id + ',';
-		data_filenames += encodeURI(links[i].match[2]) + ',';
-	}
-	data_files=data_files.substr(0,data_files.length-1);
-	data_filenames=data_filenames.substr(0,data_filenames.length-1);
-	
-	var data = data_files+'&'+data_filenames;
-	var req = new XMLHttpRequest();
-	req.open('GET', 'http://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=checkfiles_v1&'+data, true);
-	req.onreadystatechange = function (aEvt) {
-		if (req.readyState == 4) {
-			if(req.status == 200)
-			{
-				var files = req.responseText.split('\n');
-				for( i in links )
-				{
-					var info = files[i].split(',');
-					set_link_status(links[i].element,services.rs,info[4]);
-				}
-			}
-		}
-	};
-    req.send(null);
-
-}
-
-function check_mu_links(links)
-{
-	var data = "";
-	for( i in links )
-		data += 'id' + i + '=' + links[i].id + '&';
-	var req = new XMLHttpRequest();
-	req.open('POST', 'http://www.megaupload.com/mgr_linkcheck.php', true);
-	req.onreadystatechange = function (aEvt) {
-		if (req.readyState == 4) {
-			if(req.status == 200)
-			{
-				var matches = req.responseText.match(services.mu.regex_status_g);
-				for( match in matches )
-				{
-					var m = matches[match].match(services.mu.regex_status);
-					set_link_status(links[parseInt(m[1])].element,services.mu,m[2]);
-				}
-			}
-		}
-	};
-    req.send(data);
 }
 
 function check_dd_links(contentDocument)
 {
 	var dom_links = contentDocument.querySelectorAll('a[href]');
-	var links = {};
 	for(link in dom_links)
 	{
 		for( service in services )
@@ -109,17 +55,24 @@ function check_dd_links(contentDocument)
 				{
 					if( !links[service] )
 						links[service] = [];
-					links[service].push({id:match[1],element:dom_links[link],'match':match});
+					links[service].push({id:match[1],element:dom_links[link],'match':match,url: dom_links[link].href});
 					break;
 				}
 			}
 		}
 	}
 
-	for( service in services )
-		if( links[service] )
-			services[service].check(links[service]);
+	self.postMessage(links);
 }
 
-check_dd_links(document);
+self.on('message', function(chklinks)
+{
+	for( service in chklinks )
+		for( link in chklinks[service] )
+		{
+			if( chklinks[service][link].status != undefined )
+				set_link_status( links[service][link].element, chklinks[service][link].status );
+		}
+});
 
+check_dd_links(document);
